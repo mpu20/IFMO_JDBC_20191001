@@ -21,7 +21,7 @@ public class RowMapperFactory {
                     String first_name = resultSet.getString("FIRSTNAME");
                     String middle_name = resultSet.getString("MIDDLENAME");
                     String last_name = resultSet.getString("LASTNAME");
-                    FullName full_name = new FullName(first_name, middle_name, last_name);
+                    FullName full_name = new FullName(first_name, last_name, middle_name);
                     Position pos = Position.valueOf(resultSet.getString("POSITIOn"));
                     LocalDate hire_date = LocalDate.parse(resultSet.getString("HIREDATE"));
                     BigDecimal salary = resultSet.getBigDecimal("SALARY");
