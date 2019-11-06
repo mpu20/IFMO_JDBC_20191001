@@ -15,39 +15,43 @@ import com.efimchick.ifmo.web.jdbc.domain.Position;
 public class SetMapperFactory {
 
     public SetMapper<Set<Employee>> employeesSetMapper() {
-        SetMapper<Set<Employee>> set_mapper = new SetMapper<Set<Employee>>() {
-            @Override
-            public Set<Employee> mapSet(ResultSet resultSet) {
-                try {
-                    Set<Employee> se = new HashSet<>();
-                    resultSet.beforeFirst();
-                    while (resultSet.next()) {
-                        BigInteger id = new BigInteger(resultSet.getString("ID"));
-                        se.add(getInfoEmployee(id, resultSet));
-                    }
-                    return se;
-                } catch (SQLException e) {
-                    return null;
+        return resultSet -> {
+            try {
+                Set<Employee> se = new HashSet<>();
+                resultSet.beforeFirst();
+                while (resultSet.next()) {
+                    BigInteger id = new BigInteger(resultSet.getString("ID"));
+                    int current = resultSet.getRow();
+                    se.add(getInfoEmployee(id, resultSet));
+                    resultSet.absolute(current);
                 }
+                return se;
+            } catch (SQLException e) {
+                return null;
             }
         };
-        return set_mapper;
     }
 
-    private Employee getInfoEmployee(BigInteger Eid, ResultSet resultSet) {
+    private Employee getInfoEmployee(BigInteger Mid, ResultSet resultSet) {
         try {
             resultSet.beforeFirst();
             while (resultSet.next()) {
                 BigInteger id  = new BigInteger(resultSet.getString("ID"));
-                if (Eid.equals(id)) {
-                    String first_name = resultSet.getString("FIRST_NAME");
-                    String middle_name = resultSet.getString("MIDDLE_NAME");
-                    String last_name = resultSet.getString("LAST_NAME");
+                if (Mid.equals(id)) {
+                    String first_name = resultSet.getString("FIRSTNAME");
+                    String middle_name = resultSet.getString("MIDDLENAME");
+                    String last_name = resultSet.getString("LASTNAME");
                     FullName full_name = new FullName(first_name, last_name, middle_name);
                     Position pos = Position.valueOf(resultSet.getString("POSITION"));
                     LocalDate date_hire = LocalDate.parse(resultSet.getString("HIREDATE"));
                     BigDecimal salary = resultSet.getBigDecimal("SALARY");
-                    Employee manager = getInfoEmployee(new BigInteger(resultSet.getString("MANAGER")), resultSet);
+                    String smanager = resultSet.getString("MANAGER");
+                    Employee manager = null;
+                    if (smanager != null) {
+                        int current = resultSet.getRow();
+                        manager = getInfoEmployee(new BigInteger(smanager), resultSet);
+                        resultSet.absolute(current);
+                    }
                     return new Employee(id, full_name, pos, date_hire, salary, manager);
                 }
             }
